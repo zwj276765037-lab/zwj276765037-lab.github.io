@@ -86,16 +86,16 @@
   .pixel-art img{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
 
   /* 光斑 + 常驻扫描线 */
-  .pixel-art .light{
+  .pixel-art .light{mask-image:url(assets/portrait-pixel-mask.png);mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-image:url(assets/portrait-pixel-mask.png);-webkit-mask-size:100% 100%;-webkit-mask-repeat:no-repeat;
     position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
     background:radial-gradient(240px 240px at var(--mx,50%) var(--my,40%),rgba(255,255,255,.5),rgba(255,255,255,0) 62%);
     mix-blend-mode:soft-light;
   }
-  .pixel-art .scan{
+  .pixel-art .scan{mask-image:url(assets/portrait-pixel-mask.png);mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-image:url(assets/portrait-pixel-mask.png);-webkit-mask-size:100% 100%;-webkit-mask-repeat:no-repeat;
     position:absolute;inset:0;pointer-events:none;
     background:repeating-linear-gradient(180deg,rgba(28,25,20,.07) 0 1px,transparent 1px 5px);
   }
-  .pixel-art .refresh{
+  .pixel-art .refresh{mask-image:url(assets/portrait-pixel-mask.png);mask-size:100% 100%;mask-repeat:no-repeat;-webkit-mask-image:url(assets/portrait-pixel-mask.png);-webkit-mask-size:100% 100%;-webkit-mask-repeat:no-repeat;
     position:absolute;left:0;right:0;height:18%;pointer-events:none;
     background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.32),rgba(255,255,255,0));
     mix-blend-mode:soft-light;animation:refresh 6.8s linear 1.4s infinite;
