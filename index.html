@@ -1,4 +1,20 @@
 <!DOCTYPE html>
+<!--
+  ============================================================
+  卓文俊的个人网站 · 单文件
+  要改内容，只看这几处（搜索 ✏️ 就能全部找到）：
+
+    1  顶栏导航       ................ 工作 / 关于 / 联系
+    2  首屏第一行     ................ 卓文俊是
+    3  身份轮播 6 句  ................ 搜 var roles
+    4  陈述段         ................ 一句主张 ＋ 地点
+    5  作品格 4 件    ................ 复制 <a class="item"> 增删；图 16:10
+    6  页脚           ................ 身份 / 邮箱 / 链接 / 版权
+    7  深浅色         ................ 右上角按钮，数值在 :root 里
+
+  图片放 assets/work/，文件名照原来的替换即可。
+  ============================================================
+-->
 <html lang="zh-CN" data-theme="light">
 <head>
 <meta charset="utf-8">
@@ -39,6 +55,8 @@
   a{color:inherit;text-decoration:none}
   a:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
   .wrap{max-width:var(--frame);margin:0 auto;padding:0 var(--gutter)}
+  .skip{position:absolute;left:-9999px;top:0;background:var(--ink);color:var(--paper);padding:10px 16px;z-index:100}
+  .skip:focus{left:12px;top:12px}
 
   /* 顶栏：右侧一排，随滚动压扁 */
   header{position:sticky;top:0;z-index:30;background:transparent;
@@ -58,7 +76,7 @@
 
   /* 首屏：大字号 + 角色轮播 */
   .topband{background:var(--soft)}
-  .hero{padding:clamp(40px,7vw,96px) 0 clamp(30px,4vw,60px);min-height:calc(100vh - var(--head-h));
+  .hero{padding:clamp(48px,12vw,178px) 0 clamp(30px,4vw,60px);min-height:calc(100vh - var(--head-h));
     display:flex;flex-direction:column;justify-content:space-between;position:relative}
   .hero h1{font-weight:700;letter-spacing:-.02em;line-height:1.04;
     font-size:clamp(40px,8.4vw,118px);max-width:12em}
@@ -136,6 +154,9 @@
 </head>
 <body>
 
+<a class="skip" href="#work">跳到主内容</a>
+
+<!-- ✏️ 顶栏：导航文字在这里改 -->
 <div class="topband">
 <header id="head">
   <div class="head-in">
@@ -152,6 +173,7 @@
 </header>
 
   <section class="hero wrap">
+    <!-- ✏️ 首屏：第一行是名字，第二行是轮播的身份（身份在页面底部的 roles 数组里改） -->
     <h1>
       卓文俊是
       <span class="role-line"><span class="role in" id="role">一个研究者。</span></span>
@@ -164,7 +186,10 @@
       </button>
     </div>
   </section>
+</div>
 
+<main>
+  <!-- ✏️ 陈述：一句主张 ＋ 一行地点 -->
   <section class="intro">
     <p>在研究怎么把一个大模型，塞进一块边缘的 FPGA 里。</p>
     <p class="where">广州 · 广东工业大学 集成电路学院</p>
@@ -172,7 +197,7 @@
 
   <section class="work" id="work">
     <div class="wrap">
-      <div style="max-width:var(--wide);margin:0 auto">
+      <!-- ✏️ 作品格：复制一个 <a class="item"> 就能加一件；图用 16:10 -->
         <div class="grid">
           <a class="item" href="#work">
             <figure><img src="assets/work/diagram.png" alt="候选空间示意图"></figure>
@@ -197,6 +222,7 @@
   </section>
 </main>
 
+<!-- ✏️ 页脚：身份、邮箱、链接、版权 -->
 <footer id="contact">
   <div class="foot-grid">
     <div id="about">
@@ -224,6 +250,7 @@
 <script>
 (function () {
   // ---------- 身份轮播 ----------
+  // ✏️ 身份轮播：增删引号里的词，右下角的圆点会自动跟着变
   var roles = ['一个研究者。', '一个硕士生。', '一个写 RTL 的人。', '一个像素画作者。', '一个广州人。', '一个在把乘法换成查表的人。'];
   var roleEl = document.getElementById('role');
   var dotsEl = document.getElementById('dots');
