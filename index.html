@@ -65,6 +65,7 @@
 
   /* 小节 */
   .sec{margin-top:clamp(52px,8vw,88px)}
+  h1,h2{font-weight:700}
   .sec > .h{
     display:inline-block;font-size:19px;font-weight:700;letter-spacing:.14em;
     border-top:2px solid var(--ink);padding-top:9px;
@@ -103,8 +104,8 @@
 
   /* 关于 */
   .about{margin-top:24px;display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:start;max-width:33em}
-  .about img{width:120px;height:120px;object-fit:cover;display:block;
-    border:1px solid rgba(28,25,20,.35);box-shadow:3px 3px 0 rgba(34,50,43,.18)}
+  .about img{width:132px;height:132px;object-fit:cover;display:block;padding:6px;background:#F3EBDA;
+    border:1px solid rgba(28,25,20,.4);box-shadow:4px 4px 0 rgba(34,50,43,.16)}
   .about p{font-size:16.5px;line-height:1.85}
   .about p + p{margin-top:10px}
 
@@ -151,14 +152,14 @@
 <body>
 <div class="col">
 
-  <div class="name">卓文俊<span>WENJUN ZHUO</span></div>
+  <h1 class="name">卓文俊<span>WENJUN ZHUO</span></h1>
 
   <p class="statement">我在一块 FPGA 上，把大模型的乘法换成了<em>查表</em>。</p>
 
   <p class="who">广东工业大学集成电路学院，硕士在读。做边缘端的超低位宽推理硬件。<b>这不是简历</b>——简历在邮件里，这里放我真正在想的东西。</p>
 
   <div class="sec">
-    <span class="h">10 秒认识我</span>
+    <h2 class="h">10 秒认识我</h2>
     <div class="facts">
       <div><dl style="display:contents"><dt>现在</dt><dd>集成电路学院硕士在读，研究二值/三值权重 Transformer 的 FPGA 加速器<small>把「重复生成的点积结果」变成「只生成一次、按权重模式查表」。</small></dd></dl></div>
       <div><dl style="display:contents"><dt>2026</dt><dd>共同一作论文上了 IEEE TCSI<small>《BAPE》，与 Xianghong Hu 并列共同第一作者。</small></dd></dl></div>
@@ -168,12 +169,12 @@
   </div>
 
   <div class="sec">
-    <span class="h">10 分钟认识我</span>
+    <h2 class="h">10 分钟认识我</h2>
     <p class="who" style="margin-top:22px">那得等我写完第一篇文章。<a href="#about">下面是关于我的一段话</a>，比 10 秒版长一些，比 10 分钟版短很多。</p>
   </div>
 
   <div class="sec">
-    <span class="h">在读的东西</span>
+    <h2 class="h">在读的东西</h2>
     <div class="facts" style="margin-top:22px">
       <div><dl style="display:contents"><dt>论文</dt><dd>BitNet b1.58 与 Bonsai-4B 的量化细节<small>想把「三值权重到底换了什么」写清楚。</small></dd></dl></div>
       <div><dl style="display:contents"><dt>板子</dt><dd>ZCU102 上的功耗与频率余量<small>300 MHz 是目标值，真实板子上还有多少可以再要。</small></dd></dl></div>
@@ -181,7 +182,7 @@
   </div>
 
   <div class="sec">
-    <span class="h">技术笔记</span>
+    <h2 class="h">技术笔记</h2>
     <p class="lede">不写通论，只写自己动手做过的那一小块。下面三篇还在写，写完一篇发一篇。</p>
     <div class="posts">
       <article>
@@ -204,7 +205,7 @@
   </div>
 
   <div class="sec">
-    <span class="h">随笔</span>
+    <h2 class="h">随笔</h2>
     <p class="lede">研究之外的东西：读到的、想到的、过日子的。写得比技术笔记松，也不必有用。</p>
 
     <div class="jot">
@@ -234,7 +235,7 @@
   </div>
 
   <div class="sec" id="about">
-    <span class="h">关于</span>
+    <h2 class="h">关于</h2>
     <div class="about">
       <img src="assets/portrait-color-square.jpg" alt="卓文俊" width="560" height="560">
       <div>
@@ -248,7 +249,7 @@
   <div class="dark">
     <div class="inner">
       <div class="sec" style="margin-top:0">
-        <span class="h">怎么找我</span>
+        <h2 class="h">怎么找我</h2>
         <div class="contact">
           <div><i>邮箱</i><a href="mailto:zhuowenjun1@mails.gdut.edu.cn">zhuowenjun1@mails.gdut.edu.cn</a></div>
           <div><i>GitHub</i><a href="https://github.com/zwj276765037-lab" target="_blank" rel="noopener">github.com/zwj276765037-lab</a></div>
