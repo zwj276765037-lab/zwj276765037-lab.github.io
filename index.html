@@ -110,6 +110,10 @@
   .item figcaption{display:flex;justify-content:space-between;gap:16px;margin-top:10px;
     font-size:calc(var(--fs) - 3px);color:var(--muted);line-height:1.5}
   .item figcaption b{font-weight:500;color:var(--ink);font-size:calc(var(--fs) - 2px)}
+  .item.slot{cursor:default}
+  .item.slot figure{border:1px dashed rgba(127,127,127,.4);display:grid;place-items:center}
+  .item.slot figure::after{content:"16 : 10 的图放这里";font-size:13px;letter-spacing:.08em;color:var(--muted)}
+  .item.slot figcaption b,.item.slot figcaption span{color:var(--muted);font-weight:400}
   .all-work{max-width:var(--wide);margin:clamp(26px,3.4vw,44px) auto 0;font-size:var(--fs);display:inline-block}
   .all-work:hover{opacity:.55}
   .all-wrap{max-width:var(--wide);margin:0 auto}
@@ -197,24 +201,22 @@
 
   <section class="work" id="work">
     <div class="wrap">
-      <!-- ✏️ 作品格：复制一个 <a class="item"> 就能加一件；图用 16:10 -->
+      <!-- ✏️ 作品格
+           现在是四个空位。要放图时，把一个 <div class="item slot"> 整段换成：
+
+           <a class="item" href="作品链接（没有就写 #）">
+             <figure><img src="assets/work/图名.png" alt="一句话描述"></figure>
+             <figcaption><b>作品名</b><span>类型 · 时间</span></figcaption>
+           </a>
+
+           图的比例 16:10（1160×726 或 580×363），文件名自己起。
+       -->
+      <div style="max-width:var(--wide);margin:0 auto">
         <div class="grid">
-          <a class="item" href="#work">
-            <figure><img src="assets/work/diagram.png" alt="候选空间示意图"></figure>
-            <figcaption><b>BAPE</b><span>论文 · IEEE TCSI 2026</span></figcaption>
-          </a>
-          <a class="item" href="#work">
-            <figure><img src="assets/work/pixel.png" alt="像素人像"></figure>
-            <figcaption><b>像素版的我</b><span>实验 · 112×116</span></figcaption>
-          </a>
-          <a class="item" href="#work">
-            <figure><img src="assets/work/notes.png" alt="技术笔记卡片"></figure>
-            <figcaption><b>技术笔记</b><span>写作中 · 三篇</span></figcaption>
-          </a>
-          <a class="item" href="#work">
-            <figure><img src="assets/work/essays.png" alt="随笔卡片"></figure>
-            <figcaption><b>随笔</b><span>写作中 · 三件小事</span></figcaption>
-          </a>
+          <div class="item slot"><figure></figure><figcaption><b>作品一</b><span>类型 · 时间</span></figcaption></div>
+          <div class="item slot"><figure></figure><figcaption><b>作品二</b><span>类型 · 时间</span></figcaption></div>
+          <div class="item slot"><figure></figure><figcaption><b>作品三</b><span>类型 · 时间</span></figcaption></div>
+          <div class="item slot"><figure></figure><figcaption><b>作品四</b><span>类型 · 时间</span></figcaption></div>
         </div>
         <div class="all-wrap"><a class="all-work" href="#work">全部工作 →</a></div>
       </div>
