@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -45,31 +45,57 @@
   .top{border-bottom:1px solid var(--rule)}
   .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:15px;padding-bottom:15px}
   .brand{font-weight:900;font-size:16px;letter-spacing:.06em}
+  .top-right{display:flex;align-items:center;gap:clamp(16px,2.6vw,34px)}
   .top nav{display:flex;gap:clamp(14px,2.4vw,30px);font-size:14px;font-weight:700}
   .top nav a{position:relative;padding:6px 0;color:#2A2119}
   .top nav a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--deep);transition:right .18s ease}
   .top nav a:hover::after{right:0}
 
-  /* 首屏 */
-  .hero{padding:clamp(38px,6vw,76px) 0 clamp(30px,4vw,50px);border-bottom:1px solid var(--rule)}
-  .hero .wrap{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(250px,.68fr);gap:clamp(28px,5vw,68px);align-items:start}
-  .hero h1{
-    font-weight:900;font-size:clamp(54px,8.6vw,104px);line-height:1.02;letter-spacing:.02em;
+  /* 首屏：左边一张浮起的卡，右边像素人像出血到页边 */
+  .hero{position:relative;overflow:hidden;border-bottom:1px solid var(--rule)}
+  .hero-inner{position:relative;display:flex;align-items:center;min-height:464px}
+  .hero-card-wrap{position:relative;z-index:2;flex:1 1 auto;max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+  .hero-card{
+    width:min(100%,480px);background:var(--paper-2);border:1px solid rgba(28,25,20,.5);
+    box-shadow:0 18px 38px rgba(34,50,43,.15),0 1px 0 rgba(28,25,20,.12);
+    padding:clamp(20px,2.4vw,28px) clamp(20px,2.4vw,26px) clamp(18px,2.2vw,24px);
   }
-  .hero h1 small{
-    display:block;font-family:Archivo,sans-serif;font-weight:700;
-    font-size:clamp(11px,1vw,13px);letter-spacing:.46em;margin-top:16px;color:var(--mute);
+  .hero-card h1{font-weight:900;font-size:clamp(36px,4.2vw,56px);line-height:1.04;letter-spacing:.02em}
+  .hero-card h1 small{
+    display:block;font-family:Archivo,sans-serif;font-weight:700;font-size:11.5px;
+    letter-spacing:.42em;color:var(--mute);margin-top:11px;
   }
-  .dot-rule{border-top:1px dotted rgba(28,25,20,.45);margin:clamp(20px,3vw,28px) 0 clamp(16px,2.2vw,22px)}
-  .hero .lead{font-size:clamp(18px,1.9vw,23px);line-height:1.6;max-width:23em;color:var(--ink)}
-  .hero .lead b{font-weight:600;white-space:nowrap;box-shadow:inset 0 -3px 0 var(--deep)}
-  .hero .sub{margin-top:12px;font-size:16px;line-height:1.8;max-width:27em;color:var(--body)}
-  .hero .meta{margin-top:20px;font-size:13.5px;color:var(--mute);line-height:1.9}
-  .hero .meta span{display:block}
-  .hero .meta .aside{color:var(--body);font-size:14.5px;margin-top:9px;max-width:24em;line-height:1.75}
-  .hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  .dot-rule{border-top:1px dotted rgba(28,25,20,.5);margin:17px 0 15px}
+  .hero-card .bio{font-size:16px;line-height:1.74;color:var(--body);max-width:30em}
+  .hero-card .bio + .bio{margin-top:9px}
+  .hero-card .bio b{font-weight:600;color:var(--ink)}
+  .hero-card .cta{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px}
+  /* 像素人像：不做框，直接站在纸面上，右边出血 */
+  .hero-portrait{position:absolute;right:0;bottom:0;width:448px;z-index:1;line-height:0}
+  .pixel-stage{perspective:900px}
+  .pixel-art{
+    position:relative;display:block;width:100%;overflow:hidden;
+    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
+    transition:transform .22s ease-out;will-change:transform;
+  }
+  .pixel-art img{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+  .pixel-art .light{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
+    background:radial-gradient(240px 240px at var(--mx,50%) var(--my,40%),rgba(255,255,255,.5),rgba(255,255,255,0) 62%);
+    mix-blend-mode:soft-light;
+  }
+  .pixel-art .scan{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
+    background:repeating-linear-gradient(180deg,rgba(28,25,20,.075) 0 1px,transparent 1px 5px);
+  }
+  .pixel-stage:hover .light,.pixel-stage:hover .scan{opacity:1}
+  @media (hover:none){ .pixel-art .scan{display:none} }
+  @media (prefers-reduced-motion:reduce){ .pixel-art{transition:none} }
+
+  /* 按钮 */
   .btn{
     display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;
+    font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
     font-size:14.5px;font-weight:700;letter-spacing:.04em;
     border:1px solid var(--ink);border-radius:0;cursor:pointer;
     transition:background .16s ease,color .16s ease,border-color .16s ease;
@@ -78,38 +104,8 @@
   .btn-solid:hover{background:var(--ink);border-color:var(--ink)}
   .btn-line{background:transparent;color:var(--ink)}
   .btn-line:hover{background:var(--ink);color:var(--paper)}
-  /* 像素人像：大图 + 跟着鼠标轻微转动 */
-  .pixel-wrap{justify-self:end;width:min(100%,448px);margin-top:4px}
-  .pixel-stage{perspective:900px}
-  .pixel-art{
-    position:relative;display:block;width:100%;height:auto;overflow:hidden;
-    border:2px solid var(--ink);background:var(--paper-2);
-    box-shadow:10px 10px 0 rgba(34,50,43,.2);
-    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
-    transition:transform .2s ease-out,box-shadow .2s ease-out;
-    will-change:transform;
-  }
-  .pixel-art img{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
-  .pixel-art .light{
-    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
-    background:radial-gradient(220px 220px at var(--mx,50%) var(--my,40%),rgba(255,255,255,.55),rgba(255,255,255,0) 62%);
-    mix-blend-mode:soft-light;
-  }
-  .pixel-art .scan{
-    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
-    background:repeating-linear-gradient(180deg,rgba(28,25,20,.075) 0 1px,transparent 1px 5px);
-  }
-  .pixel-stage:hover .light,.pixel-stage:hover .scan{opacity:1}
-  .pixel-cap{display:flex;justify-content:space-between;gap:12px;margin-top:12px;font-size:12.5px;color:var(--mute);line-height:1.65}
-  .pixel-cap .hint{white-space:nowrap}
-  .pixel-cap .hint::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;
-    background:var(--deep);vertical-align:1px;animation:blink 2.4s steps(1,end) infinite}
-  @keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.15}}
-  @media (hover:none){ .pixel-cap .hint{display:none} }
-  @media (prefers-reduced-motion:reduce){
-    .pixel-art{transition:none}
-    .pixel-cap .hint::before{animation:none}
-  }
+  .btn-sm{min-height:38px;padding:0 16px;font-size:13.5px}
+
   /* 章节骨架 */
   section{padding:clamp(48px,7vw,86px) 0;border-bottom:1px solid var(--rule)}
   .sec-head{display:grid;grid-template-columns:repeat(12,1fr);column-gap:clamp(14px,2vw,28px);
@@ -173,12 +169,18 @@
   footer .links{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
   footer .small{width:100%;font-size:12.5px;color:#A9BBAE;letter-spacing:.06em;margin-top:6px}
 
-  @media (min-width:1000px){
-    .hero .wrap{grid-template-columns:minmax(0,1fr) 470px}
+  @media (min-width:1300px){
+    .hero-portrait{width:784px}
+    .hero-inner{min-height:812px}
+  }
+  @media (min-width:1000px) and (max-width:1299px){
+    .hero-portrait{width:560px}
+    .hero-inner{min-height:580px}
   }
   @media (max-width:900px){
-    .hero .wrap{grid-template-columns:1fr;gap:26px}
-    .pixel-wrap{justify-self:start;width:min(100%,336px);margin-top:0}
+    .hero-inner{min-height:0;display:flex;flex-direction:column;padding-top:0}
+    .hero-card-wrap{padding-top:22px;padding-bottom:26px}
+    .hero-portrait{position:relative;right:auto;bottom:auto;width:336px;margin:0 auto}
     .sec-head{grid-template-columns:1fr;gap:10px}
     h2,.sec-head .note{grid-column:1/13}
     .paper{grid-template-columns:1fr}
@@ -205,44 +207,41 @@
 <header class="top">
   <div class="wrap">
     <span class="brand">卓文俊</span>
-    <nav>
-      <a href="#paper">论文</a>
-      <a href="#notes">笔记</a>
-      <a href="#jot">随笔</a>
-      <a href="#connect">联系</a>
-    </nav>
+    <div class="top-right">
+      <nav>
+        <a href="#paper">论文</a>
+        <a href="#notes">笔记</a>
+        <a href="#jot">随笔</a>
+      </nav>
+      <a class="btn btn-solid btn-sm" href="#connect">聊聊</a>
+    </div>
   </div>
 </header>
 
 <main>
   <div class="hero">
-    <div class="wrap">
-      <div>
-        <h1>卓文俊<small>WENJUN ZHUO</small></h1>
-        <div class="dot-rule"></div>
-        <p class="lead">我在一块 FPGA 上，把大模型的乘法换成了<b>查表</b>。</p>
-        <p class="sub">二值或三值权重下，一行激活能产生的点积结果本来就只有有限几种——先算一次、留在片上，让所有输出列按权重模式去取。</p>
-        <p class="meta">
-          <span>广东工业大学 集成电路学院 · 硕士在读</span>
-          <span>方向：超低位宽的边缘推理硬件</span>
-          <span class="aside">这不是简历——简历在邮件里，这里放我真正在想的东西。</span>
-        </p>
-        <div class="cta">
-          <a class="btn btn-solid" href="mailto:zhuowenjun1@mails.gdut.edu.cn">写信给我</a>
-          <a class="btn btn-line" href="https://doi.org/10.1109/TCSI.2026.3727987" target="_blank" rel="noopener">读那篇论文</a>
+    <div class="hero-inner">
+      <div class="hero-card-wrap">
+        <div class="hero-card">
+          <h1>卓文俊<small>WENJUN ZHUO</small></h1>
+          <div class="dot-rule"></div>
+          <p class="bio">广东工业大学集成电路学院，硕士在读。我把二值 / 三值权重的 Transformer 塞进一块 <b>AMD-Xilinx ZCU102</b> 上跑：<b>候选点积只算一次，按权重模式查表</b>，加法少了七成。</p>
+          <p class="bio">论文发在 <b>IEEE</b> Transactions on Circuits and Systems I 上，<b>共同第一作者</b>。</p>
+          <p class="bio">现在把同一套数据流推到别的低位宽格式，也在学着把话说清楚。</p>
+          <div class="cta">
+            <a class="btn btn-solid" href="mailto:zhuowenjun1@mails.gdut.edu.cn">写信给我</a>
+            <a class="btn btn-line" href="https://doi.org/10.1109/TCSI.2026.3727987" target="_blank" rel="noopener">读那篇论文</a>
+          </div>
         </div>
       </div>
-      <div class="pixel-wrap">
+
+      <div class="hero-portrait">
         <div class="pixel-stage">
           <div class="pixel-art" id="pixelArt">
-            <img src="assets/portrait-pixel-1x.png" alt="卓文俊的像素画像" width="112" height="131">
+            <img src="assets/portrait-pixel-1x.png" alt="卓文俊的像素画像" width="112" height="116">
             <span class="light"></span>
             <span class="scan"></span>
           </div>
-        </div>
-        <div class="pixel-cap">
-          <span>像素版。原图是宿舍里的自拍，头发没梳。</span>
-          <span class="hint">鼠标移过来</span>
         </div>
       </div>
     </div>
@@ -364,7 +363,7 @@
         </div>
         <div class="card">
           <div class="who">
-            <img class="mini" src="assets/portrait-pixel-1x.png" alt="" width="112" height="131">
+            <img class="mini" src="assets/portrait-pixel-1x.png" alt="" width="112" height="116">
             <div>
               <b>卓文俊 · Wenjun Zhuo</b>
               <span>广东工业大学 集成电路学院 · 广州</span>
