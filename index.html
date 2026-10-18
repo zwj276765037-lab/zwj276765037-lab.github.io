@@ -4,266 +4,430 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>卓文俊 — 在 FPGA 上把乘法换成查表的人</title>
-<meta name="description" content="卓文俊，广东工业大学集成电路学院硕士研究生。做边缘端超低位宽的 Transformer 加速器（BAPE，IEEE TCSI 2026 共同第一作者），也在这里写点东西。">
-<meta name="author" content="卓文俊 Wenjun Zhuo">
+<meta name="description" content="卓文俊，广东工业大学集成电路学院硕士研究生。做边缘端超低位宽的 Transformer 加速器（BAPE，IEEE TCSI 2026 共同第一作者）。">
 <meta name="theme-color" content="#EAE0C8">
-
-<!-- 分享卡：微信/Slack/Twitter 抓取用 -->
-<meta property="og:type" content="website">
-<meta property="og:title" content="卓文俊 — 在 FPGA 上把乘法换成查表的人">
-<meta property="og:description" content="广东工业大学集成电路学院硕士研究生。研究二值/三值权重 Transformer 的 FPGA 加速器。">
-<meta property="og:locale" content="zh_CN">
-<meta name="twitter:card" content="summary">
-
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2322322B'/%3E%3Ctext x='32' y='45' font-family='Songti SC,SimSun,serif' font-size='40' font-weight='700' fill='%23EAE0C8' text-anchor='middle'%3E卓%3C/text%3E%3C/svg%3E">
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800&family=Noto+Sans+SC:wght@700;900&family=Noto+Serif+SC:wght@400;600&display=swap" rel="stylesheet">
 <style>
   /* ---------------------------------------------------------------
-     卓文俊 · 个人站
-     结构：一节一句话的窄栏自述（借 Derek Sivers 的直白），
-     暖纸底＋深墨绿收尾。照片用彩色原片。
-     改内容只需要改文字，CSS 不用动。
+     v2 · 结构向 pengyaochen.com 学：
+     粗黑大标题压场／首屏左右分栏＋人像卡／每节一个形状／
+     状态印章／联系区写清"聊什么"。纸色、诚实占位、窄阅读宽度保留。
      --------------------------------------------------------------- */
   :root{
     --paper:#EAE0C8;
+    --paper-2:#F2E9D6;
     --ink:#1C1914;
+    --body:#3A2F22;
     --mute:#6B5C43;
-    --link:#2A4A3B;
-    --rule:rgba(28,25,20,.22);
     --deep:#22322B;
+    --rule:rgba(28,25,20,.26);
+    --max:1240px;
+    --pad:clamp(20px,4.4vw,56px);
   }
   *{box-sizing:border-box;margin:0;padding:0}
   html{-webkit-text-size-adjust:100%}
   body{
-    overflow-x:hidden;
     background:var(--paper);color:var(--ink);
-    font-family:"Noto Serif SC","Songti SC","SimSun",Georgia,serif;
-    font-size:17px;line-height:1.9;
-    padding:clamp(40px,7vw,88px) clamp(22px,7vw,60px) 0;
+    font-family:"Noto Serif SC","Songti SC",Georgia,serif;
+    font-size:17px;line-height:1.85;
+    -webkit-font-smoothing:antialiased;
   }
-  .col{max-width:640px;margin-left:clamp(0px,7vw,150px)}
+  .sans,h1,h2,h3,.btn,.brand,footer .big{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+  .mono{font-family:Archivo,"Noto Sans SC",sans-serif;font-variant-numeric:tabular-nums}
+  .wrap{max-width:var(--max);margin:0 auto;padding:0 var(--pad)}
+  a{color:inherit;text-decoration:none}
+  a:focus-visible{outline:2px solid var(--deep);outline-offset:3px}
 
-  a{color:var(--link);text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
-  a:hover{background:var(--link);color:var(--paper);text-decoration-color:transparent}
-  a:focus-visible{outline:2px solid var(--link);outline-offset:3px}
+  /* 顶栏 */
+  .top{border-bottom:1px solid var(--rule)}
+  .top .wrap{display:flex;align-items:center;justify-content:space-between;gap:18px;padding-top:15px;padding-bottom:15px}
+  .brand{font-weight:900;font-size:16px;letter-spacing:.06em}
+  .top nav{display:flex;gap:clamp(14px,2.4vw,30px);font-size:14px;font-weight:700}
+  .top nav a{position:relative;padding:6px 0;color:#2A2119}
+  .top nav a::after{content:"";position:absolute;left:0;right:100%;bottom:0;height:2px;background:var(--deep);transition:right .18s ease}
+  .top nav a:hover::after{right:0}
 
-  .name{font-size:17px;letter-spacing:.34em;font-weight:700}
-  .name span{display:block;font-size:12px;letter-spacing:.34em;color:var(--mute);margin-top:6px;font-weight:400}
-
-  .statement{
-    margin-top:clamp(44px,7vw,76px);
-    font-size:clamp(27px,3.5vw,40px);line-height:1.5;font-weight:700;letter-spacing:-.01em;
-    text-wrap:balance;max-width:15em;
+  /* 首屏 */
+  .hero{padding:clamp(38px,6vw,76px) 0 clamp(30px,4vw,50px);border-bottom:1px solid var(--rule)}
+  .hero .wrap{display:grid;grid-template-columns:minmax(0,1.32fr) minmax(250px,.68fr);gap:clamp(28px,5vw,68px);align-items:start}
+  .hero h1{
+    font-weight:900;font-size:clamp(54px,8.6vw,104px);line-height:1.02;letter-spacing:.02em;
   }
-  .statement em{font-style:normal;border-bottom:2px solid var(--link)}
-
-  .who{margin-top:26px;font-size:17px;line-height:1.9;max-width:29em}
-  .who b{font-weight:700}
-
-  /* 小节 */
-  .sec{margin-top:clamp(52px,8vw,88px)}
-  h1,h2{font-weight:700}
-  .sec > .h{
-    display:inline-block;font-size:19px;font-weight:700;letter-spacing:.14em;
-    border-top:2px solid var(--ink);padding-top:9px;
+  .hero h1 small{
+    display:block;font-family:Archivo,sans-serif;font-weight:700;
+    font-size:clamp(11px,1vw,13px);letter-spacing:.46em;margin-top:16px;color:var(--mute);
   }
-  .sec > .h span{color:var(--mute);font-size:12px;letter-spacing:.2em;margin-left:10px;font-weight:400;vertical-align:2px}
-  .lede{margin-top:18px;font-size:16px;line-height:1.9;max-width:30em;color:#33291d}
+  .dot-rule{border-top:1px dotted rgba(28,25,20,.45);margin:clamp(20px,3vw,28px) 0 clamp(16px,2.2vw,22px)}
+  .hero .lead{font-size:clamp(18px,1.9vw,23px);line-height:1.6;max-width:23em;color:var(--ink)}
+  .hero .lead b{font-weight:600;white-space:nowrap;box-shadow:inset 0 -3px 0 var(--deep)}
+  .hero .sub{margin-top:12px;font-size:16px;line-height:1.8;max-width:27em;color:var(--body)}
+  .hero .meta{margin-top:20px;font-size:13.5px;color:var(--mute);line-height:1.9}
+  .hero .meta span{display:block}
+  .hero .meta .aside{color:var(--body);font-size:14.5px;margin-top:9px;max-width:24em;line-height:1.75}
+  .hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 22px;
+    font-size:14.5px;font-weight:700;letter-spacing:.04em;
+    border:1px solid var(--ink);border-radius:0;cursor:pointer;
+    transition:background .16s ease,color .16s ease,border-color .16s ease;
+  }
+  .btn-solid{background:var(--deep);border-color:var(--deep);color:var(--paper)}
+  .btn-solid:hover{background:var(--ink);border-color:var(--ink)}
+  .btn-line{background:transparent;color:var(--ink)}
+  .btn-line:hover{background:var(--ink);color:var(--paper)}
+  /* 像素人像：大图 + 跟着鼠标轻微转动 */
+  .pixel-wrap{justify-self:end;width:min(100%,448px);margin-top:4px}
+  .pixel-stage{perspective:900px}
+  .pixel-art{
+    position:relative;display:block;width:100%;height:auto;overflow:hidden;
+    border:2px solid var(--ink);background:var(--paper-2);
+    box-shadow:10px 10px 0 rgba(34,50,43,.2);
+    transform:rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateZ(0);
+    transition:transform .2s ease-out,box-shadow .2s ease-out;
+    will-change:transform;
+  }
+  .pixel-art img{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}
+  .pixel-art .light{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
+    background:radial-gradient(220px 220px at var(--mx,50%) var(--my,40%),rgba(255,255,255,.55),rgba(255,255,255,0) 62%);
+    mix-blend-mode:soft-light;
+  }
+  .pixel-art .scan{
+    position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s ease;
+    background:repeating-linear-gradient(180deg,rgba(28,25,20,.075) 0 1px,transparent 1px 5px);
+  }
+  .pixel-stage:hover .light,.pixel-stage:hover .scan{opacity:1}
+  .pixel-cap{display:flex;justify-content:space-between;gap:12px;margin-top:12px;font-size:12.5px;color:var(--mute);line-height:1.65}
+  .pixel-cap .hint{white-space:nowrap}
+  .pixel-cap .hint::before{content:"";display:inline-block;width:6px;height:6px;margin-right:6px;
+    background:var(--deep);vertical-align:1px;animation:blink 2.4s steps(1,end) infinite}
+  @keyframes blink{0%,60%{opacity:1}61%,100%{opacity:.15}}
+  @media (hover:none){ .pixel-cap .hint{display:none} }
+  @media (prefers-reduced-motion:reduce){
+    .pixel-art{transition:none}
+    .pixel-cap .hint::before{animation:none}
+  }
+  /* 章节骨架 */
+  section{padding:clamp(48px,7vw,86px) 0;border-bottom:1px solid var(--rule)}
+  .sec-head{display:grid;grid-template-columns:repeat(12,1fr);column-gap:clamp(14px,2vw,28px);
+    align-items:baseline;margin-bottom:clamp(22px,3.4vw,36px)}
+  h2{grid-column:1/5;font-weight:900;font-size:clamp(31px,4.2vw,52px);line-height:1.08;letter-spacing:.01em}
+  .sec-head .note{grid-column:5/11;font-size:14.5px;color:var(--mute);line-height:1.85;max-width:30em}
 
-  /* 时间线：年份 + 事实 */
-  .facts{margin-top:22px;max-width:31em}
-  .facts div{display:grid;grid-template-columns:82px 1fr;gap:16px;margin-bottom:15px}
-  .facts dt{font-size:13px;color:var(--mute);letter-spacing:.08em;padding-top:4px}
-  .facts dd{font-size:17px;line-height:1.75}
-  .facts dd small{display:block;font-size:14.5px;color:#4a4033;margin-top:2px;line-height:1.7}
+  /* 论文 */
+  .paper{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(230px,.85fr);gap:clamp(22px,4vw,54px);align-items:start}
+  .paper .en{font-family:Archivo,sans-serif;font-weight:800;font-size:clamp(38px,5vw,62px);line-height:.95;letter-spacing:-.02em}
+  .paper .zh{margin-top:14px;font-size:16.5px;line-height:1.75;color:var(--body);max-width:30em}
+  .paper .venue{margin-top:14px;font-size:14.5px;color:var(--mute);line-height:1.9}
+  .paper .venue .mono{color:var(--ink)}
+  .paper .venue b{font-weight:600;color:var(--ink)}
+  .stamp{
+    display:inline-block;font-family:"Noto Sans SC",sans-serif;font-size:13px;font-weight:700;letter-spacing:.16em;
+    padding:7px 12px;border:1px dashed rgba(28,25,20,.6);color:#2A2119;background:rgba(242,233,214,.75);
+  }
+  .paper .tag{margin-top:18px}
+  .paper dl{border-top:1px solid var(--rule)}
+  .paper dl > div{display:grid;grid-template-columns:58px 1fr;gap:12px;padding:11px 0;border-bottom:1px solid var(--rule);font-size:14.5px}
+  .paper dt{font-family:"Noto Sans SC",sans-serif;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--mute);padding-top:4px}
+  .paper dd{line-height:1.7}
+  .metrics{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rule);margin-top:clamp(28px,4vw,48px)}
+  .metrics div{padding:16px 18px 4px 0;border-right:1px solid var(--rule)}
+  .metrics div:last-child{border-right:0}
+  .metrics b{display:block;font-family:Archivo,sans-serif;font-size:clamp(17px,2.2vw,26px);font-weight:700;letter-spacing:-.02em;line-height:1.1}
+  .metrics span{display:block;font-size:12.5px;color:var(--mute);margin-top:8px;letter-spacing:.06em}
 
-  /* 文章列表 */
-  .posts{margin-top:22px;max-width:34em}
-  .posts article{padding:16px 0;border-bottom:1px solid var(--rule)}
-  .posts article:first-child{border-top:1px solid var(--rule)}
-  .posts h3{font-size:18px;font-weight:700;line-height:1.55;letter-spacing:.01em}
-  .posts h3 a{text-decoration:none;border-bottom:1px solid var(--link)}
-  .posts p{font-size:14.5px;color:#4a4033;line-height:1.75;margin-top:5px}
-  .posts .st{font-size:12px;letter-spacing:.16em;color:var(--mute);margin-top:7px;display:block}
-  .posts .st em{font-style:normal;color:var(--link)}
-
-  /* 随笔：比技术笔记松一行，不带状态标签 */
-  .jot{margin-top:24px;max-width:34em}
-  .jot article{padding:15px 0 17px;border-bottom:1px solid var(--rule)}
-  .jot article:first-child{border-top:1px solid var(--rule)}
-  .jot h3{font-size:17.5px;font-weight:700;line-height:1.6;letter-spacing:.01em}
-  .jot p{font-size:14.5px;color:#4a4033;line-height:1.8;margin-top:4px}
-  .jot .when{font-size:12.5px;color:var(--mute);letter-spacing:.08em;margin-right:12px}
-  .jot .st{font-size:12px;letter-spacing:.16em;color:var(--mute);margin-top:6px;display:block}
-  .jot .st em{font-style:normal;color:var(--link)}
-
-  .tiny{font-size:14px;color:var(--mute);line-height:1.8;margin-top:18px;max-width:30em}
-
-  /* 关于 */
-  .about{margin-top:24px;display:grid;grid-template-columns:120px 1fr;gap:24px;align-items:start;max-width:33em}
-  .about img{width:132px;height:132px;object-fit:cover;display:block;padding:6px;background:#F3EBDA;
-    border:1px solid rgba(28,25,20,.4);box-shadow:4px 4px 0 rgba(34,50,43,.16)}
-  .about p{font-size:16.5px;line-height:1.85}
-  .about p + p{margin-top:10px}
+  /* 行列表：笔记 / 随笔 */
+  .rows{border-top:1px solid var(--rule)}
+  .row{
+    display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:clamp(14px,3vw,40px);
+    align-items:start;padding:24px 0;border-bottom:1px solid var(--rule);
+  }
+  .row h3{font-weight:700;font-size:clamp(17px,1.9vw,20px);line-height:1.55}
+  .row h3 a{border-bottom:1px solid var(--deep)}
+  .row p{font-size:15px;color:#4A3E2E;line-height:1.75;margin-top:6px;max-width:44em}
+  .row .stamp{justify-self:end;white-space:nowrap;margin-top:2px}
+  .rows-end{margin-top:16px;font-size:14px;color:var(--mute);line-height:1.8;max-width:42em}
 
   /* 联系 */
-  .contact{margin-top:22px;max-width:32em}
-  .contact div{display:grid;grid-template-columns:88px 1fr;gap:14px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:16px}
-  .contact div:first-child{border-top:1px solid var(--rule)}
-  .contact i{font-style:normal;font-size:13px;color:var(--mute);letter-spacing:.12em;padding-top:3px}
-  .contact .pend{color:var(--mute)}
+  .contact-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(280px,.9fr);gap:clamp(26px,5vw,64px);align-items:start}
+  .topics{border-top:1px solid var(--rule)}
+  .topics div{padding:15px 0;border-bottom:1px solid var(--rule);font-size:15.5px;line-height:1.75;display:grid;grid-template-columns:auto 1fr;gap:14px}
+  .topics b{font-family:"Noto Sans SC",sans-serif;font-weight:900;font-size:15.5px;white-space:nowrap}
+  .card{background:var(--paper-2);border:1px solid rgba(28,25,20,.45);box-shadow:6px 6px 0 rgba(34,50,43,.16);padding:20px 22px 22px}
+  .card .who{display:flex;gap:14px;align-items:center;border-bottom:1px solid var(--rule);padding-bottom:15px}
+  .card .who img{width:54px;height:54px;object-fit:cover;image-rendering:pixelated;border:1px solid rgba(28,25,20,.4);padding:2px;background:#fff}
+  .card .who b{display:block;font-size:15px;font-weight:900}
+  .card .who span{display:block;font-size:12.5px;color:var(--mute);margin-top:4px}
+  .card p{font-size:14.5px;line-height:1.8;margin:15px 0 17px;color:#3A2F22}
+  .card .cta{display:flex;flex-wrap:wrap;gap:10px}
 
-  /* 深墨绿收尾 */
-  .dark{background:var(--deep);color:#F1E9D9;width:100vw;
-    margin-left:calc(-1 * (clamp(22px,7vw,60px) + clamp(0px,7vw,150px)));
-    padding:clamp(40px,6vw,64px) 0 clamp(34px,5vw,52px);margin-top:clamp(52px,8vw,88px)}
-  .dark .inner{max-width:640px;margin-left:calc(clamp(22px,7vw,60px) + clamp(0px,7vw,150px));
-    padding-right:clamp(22px,7vw,60px)}
-  .dark .h{border-top-color:#F1E9D9}
-  .dark .lede{color:#D8E0D6}
-  .dark .contact div{border-color:rgba(241,233,217,.3)}
-  .dark .contact i,.dark .pend,.dark .tiny{color:#A9BBAE}
-  .dark a{color:#F1E9D9;text-decoration-color:#A9BBAE}
-  .dark a:hover{background:#F1E9D9;color:var(--deep)}
-  .dark .contact div:first-child{border-top-color:rgba(241,233,217,.3)}
-  .dark footer{margin-top:34px;border-top:1px solid rgba(241,233,217,.3);color:#A9BBAE}
-  .dark footer a{color:#A9BBAE;text-decoration-color:rgba(241,233,217,.3)}
-  .dark footer a:hover{background:#F1E9D9;color:var(--deep)}
+  /* 页脚 */
+  footer{background:var(--deep);color:#F1E9D9;padding:clamp(34px,5vw,56px) 0 clamp(26px,3.6vw,38px)}
+  footer .wrap{display:flex;justify-content:space-between;gap:26px;flex-wrap:wrap;align-items:flex-end}
+  footer .big{font-weight:900;font-size:clamp(25px,3.4vw,38px);letter-spacing:.02em;line-height:1.25}
+  footer a{text-decoration:underline;text-decoration-color:rgba(241,233,217,.5);text-underline-offset:3px}
+  footer a:hover{background:#F1E9D9;color:var(--deep);text-decoration-color:transparent}
+  footer .links{display:flex;gap:20px;flex-wrap:wrap;font-size:14px}
+  footer .small{width:100%;font-size:12.5px;color:#A9BBAE;letter-spacing:.06em;margin-top:6px}
 
-  footer{font-size:12.5px;color:var(--mute);letter-spacing:.08em;line-height:1.9;padding-top:14px}
-
-  @media (max-width:600px){
-    body{font-size:16.5px}
-    .col{margin-left:0}
-    .facts div{grid-template-columns:1fr;gap:2px}
-    .about{grid-template-columns:1fr;gap:16px}
-    .contact div{grid-template-columns:1fr;gap:2px}
-    .dark .inner{padding-right:clamp(22px,7vw,60px)}
+  @media (min-width:1000px){
+    .hero .wrap{grid-template-columns:minmax(0,1fr) 470px}
   }
-  @media print{
-    .dark{background:none;color:#000}
-    body{background:#fff}
+  @media (max-width:900px){
+    .hero .wrap{grid-template-columns:1fr;gap:26px}
+    .pixel-wrap{justify-self:start;width:min(100%,336px);margin-top:0}
+    .sec-head{grid-template-columns:1fr;gap:10px}
+    h2,.sec-head .note{grid-column:1/13}
+    .paper{grid-template-columns:1fr}
+    .contact-grid{grid-template-columns:1fr}
+    .metrics{grid-template-columns:1fr 1fr}
+    .metrics div:nth-child(2n){border-right:0}
+    .metrics div:nth-child(-n+2){border-bottom:1px solid var(--rule)}
+    .top nav{display:none}
+  }
+  @media (max-width:620px){
+    .row{grid-template-columns:1fr;gap:10px}
+    .row .stamp{justify-self:start;margin-top:0}
+    .topics div{grid-template-columns:1fr;gap:4px}
+  }
+  @media (prefers-reduced-motion:no-preference){
+    .hero h1,.hero .lead,.hero .sub,.hero .cta{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+    .hero .lead{animation-delay:.05s}.hero .sub{animation-delay:.09s}.hero .cta{animation-delay:.13s}
+    @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   }
 </style>
 </head>
 <body>
-<div class="col">
 
-  <h1 class="name">卓文俊<span>WENJUN ZHUO</span></h1>
-
-  <p class="statement">我在一块 FPGA 上，把大模型的乘法换成了<em>查表</em>。</p>
-
-  <p class="who">广东工业大学集成电路学院，硕士在读。做边缘端的超低位宽推理硬件。<b>这不是简历</b>——简历在邮件里，这里放我真正在想的东西。</p>
-
-  <div class="sec">
-    <h2 class="h">10 秒认识我</h2>
-    <div class="facts">
-      <div><dl style="display:contents"><dt>现在</dt><dd>集成电路学院硕士在读，研究二值/三值权重 Transformer 的 FPGA 加速器<small>把「重复生成的点积结果」变成「只生成一次、按权重模式查表」。</small></dd></dl></div>
-      <div><dl style="display:contents"><dt>2026</dt><dd>共同一作论文上了 IEEE TCSI<small>《BAPE》，与 Xianghong Hu 并列共同第一作者。</small></dd></dl></div>
-      <div><dl style="display:contents"><dt>那之前</dt><dd>写 RTL、跑综合、和时序报告较劲<small>现在仍在做这些，只是多了一个可以写给外人看的题目。</small></dd></dl></div>
-      <div><dl style="display:contents"><dt>平时</dt><dd>读论文、记笔记、把想明白的东西写下来<small>写得慢，但不想让这里长满占位符。</small></dd></dl></div>
-    </div>
+<header class="top">
+  <div class="wrap">
+    <span class="brand">卓文俊</span>
+    <nav>
+      <a href="#paper">论文</a>
+      <a href="#notes">笔记</a>
+      <a href="#jot">随笔</a>
+      <a href="#connect">联系</a>
+    </nav>
   </div>
+</header>
 
-  <div class="sec">
-    <h2 class="h">10 分钟认识我</h2>
-    <p class="who" style="margin-top:22px">那得等我写完第一篇文章。<a href="#about">下面是关于我的一段话</a>，比 10 秒版长一些，比 10 分钟版短很多。</p>
-  </div>
-
-  <div class="sec">
-    <h2 class="h">在读的东西</h2>
-    <div class="facts" style="margin-top:22px">
-      <div><dl style="display:contents"><dt>论文</dt><dd>BitNet b1.58 与 Bonsai-4B 的量化细节<small>想把「三值权重到底换了什么」写清楚。</small></dd></dl></div>
-      <div><dl style="display:contents"><dt>板子</dt><dd>ZCU102 上的功耗与频率余量<small>300 MHz 是目标值，真实板子上还有多少可以再要。</small></dd></dl></div>
-    </div>
-  </div>
-
-  <div class="sec">
-    <h2 class="h">技术笔记</h2>
-    <p class="lede">不写通论，只写自己动手做过的那一小块。下面三篇还在写，写完一篇发一篇。</p>
-    <div class="posts">
-      <article>
-        <h3>为什么二值权重能省掉乘法</h3>
-        <p>从一个激活行出发，推导候选空间为什么是有界的，以及查表为什么比 XNOR + popcount 更省加法。</p>
-        <span class="st"><em>草稿</em>，还没发</span>
-      </article>
-      <article>
-        <h3>在 ZCU102 上跑 4B 模型的一周</h3>
-        <p>板子、时钟、功耗墙，以及那些在仿真里永远不会出现的问题。</p>
-        <span class="st">计划，还没开始</span>
-      </article>
-      <article>
-        <h3>读 BitNet b1.58：三值权重到底换了什么</h3>
-        <p>把论文里的假设逐条拆开，看哪一条在硬件上最贵。</p>
-        <span class="st">计划，还没开始</span>
-      </article>
-    </div>
-    <p class="tiny">这里暂时没有已发布的文章，所以也没有日期。等第一篇写完，这一栏才有意义。</p>
-  </div>
-
-  <div class="sec">
-    <h2 class="h">随笔</h2>
-    <p class="lede">研究之外的东西：读到的、想到的、过日子的。写得比技术笔记松，也不必有用。</p>
-
-    <div class="jot">
-      <!-- 写成一篇之后，把这一条换成真条目（日期 + 标题 + 一句开头），格式：
-      <article>
-        <h3><span class="when">2026-11</span>标题</h3>
-        <p>第一段。</p>
-      </article>
-      -->
-      <article>
-        <h3>查表这件事为什么让我觉得踏实</h3>
-        <p>从一条加法路径讲到，为什么在硬件里「少做一点」有时比「做快一点」更让人安心。</p>
-        <span class="st">想写，还没动笔</span>
-      </article>
-      <article>
-        <h3>写 RTL 和写文章，其实是同一件事</h3>
-        <p>都是在决定：什么该被抽象掉，什么必须留着看得见。</p>
-        <span class="st">想写，还没动笔</span>
-      </article>
-      <article>
-        <h3>广州的雨季，和调板子的一周</h3>
-        <p>实验室的灯、示波器的风扇声，以及一个迟迟不收敛的时序。</p>
-        <span class="st">想写，还没动笔</span>
-      </article>
-    </div>
-    <p class="tiny">这三件是打算写的小事，还没有一篇成文。第一篇写出来之后，这里会换成它的日期和开头。</p>
-  </div>
-
-  <div class="sec" id="about">
-    <h2 class="h">关于</h2>
-    <div class="about">
-      <img src="assets/portrait-color-square.jpg" alt="卓文俊" width="560" height="560">
+<main>
+  <div class="hero">
+    <div class="wrap">
       <div>
-        <p>卓文俊，广东工业大学集成电路学院硕士研究生。做芯片和模型交界处的事：把一个在 GPU 上理所当然的算子，重新想成一块板子上能省下来的加法。</p>
-        <p>BAPE 之前，大部分时间在写 RTL、跑综合、和时序报告较劲。现在把同一套数据流推到别的低位宽格式上。</p>
-        <p style="color:var(--mute);font-size:15px">照片是照相馆拍的证件照，唯一一张能用的。</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="dark">
-    <div class="inner">
-      <div class="sec" style="margin-top:0">
-        <h2 class="h">怎么找我</h2>
-        <div class="contact">
-          <div><i>邮箱</i><a href="mailto:zhuowenjun1@mails.gdut.edu.cn">zhuowenjun1@mails.gdut.edu.cn</a></div>
-          <div><i>GitHub</i><a href="https://github.com/zwj276765037-lab" target="_blank" rel="noopener">github.com/zwj276765037-lab</a></div>
-          <div><i>论文</i><a href="https://doi.org/10.1109/TCSI.2026.3727987" target="_blank" rel="noopener">10.1109/TCSI.2026.3727987</a></div>
-          <div><i>单位</i><span>广东工业大学 集成电路学院，广州</span></div>
+        <h1>卓文俊<small>WENJUN ZHUO</small></h1>
+        <div class="dot-rule"></div>
+        <p class="lead">我在一块 FPGA 上，把大模型的乘法换成了<b>查表</b>。</p>
+        <p class="sub">二值或三值权重下，一行激活能产生的点积结果本来就只有有限几种——先算一次、留在片上，让所有输出列按权重模式去取。</p>
+        <p class="meta">
+          <span>广东工业大学 集成电路学院 · 硕士在读</span>
+          <span>方向：超低位宽的边缘推理硬件</span>
+          <span class="aside">这不是简历——简历在邮件里，这里放我真正在想的东西。</span>
+        </p>
+        <div class="cta">
+          <a class="btn btn-solid" href="mailto:zhuowenjun1@mails.gdut.edu.cn">写信给我</a>
+          <a class="btn btn-line" href="https://doi.org/10.1109/TCSI.2026.3727987" target="_blank" rel="noopener">读那篇论文</a>
         </div>
-        <p class="tiny" style="margin-top:22px">写信给我比在社交平台留言更靠谱。涉及论文、数据流、能效的问题我都会回。</p>
-        <footer>
-          © 2026 卓文俊 · 静态 HTML，无框架无追踪 · <a href="#">回到顶部</a>
-        </footer>
+      </div>
+      <div class="pixel-wrap">
+        <div class="pixel-stage">
+          <div class="pixel-art" id="pixelArt">
+            <img src="assets/portrait-pixel-1x.png" alt="卓文俊的像素画像" width="112" height="131">
+            <span class="light"></span>
+            <span class="scan"></span>
+          </div>
+        </div>
+        <div class="pixel-cap">
+          <span>像素版。原图是宿舍里的自拍，头发没梳。</span>
+          <span class="hint">鼠标移过来</span>
+        </div>
       </div>
     </div>
   </div>
 
-</div>
+  <section id="paper">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>论文</h2>
+        <p class="note">目前最硬的一件东西。一篇 TCSI 的 regular paper，写在一个叫 BAPE 的加速器里。</p>
+      </div>
+
+      <div class="paper">
+        <div>
+          <div class="en">BAPE</div>
+          <p class="zh">A Binary or Ternary-Weights Transformer Accelerator Based on Precomputation at the Edge<br>
+            用「按激活行预计算 + 权重模式索引」把二值/三值 Transformer 线性层的加法减少 74.87% 与 49.91%。</p>
+          <p class="venue"><span class="mono">IEEE Transactions on Circuits and Systems I: Regular Papers</span>，2026<br>
+            DOI <span class="mono">10.1109/TCSI.2026.3727987</span><br>
+            作者：Xianghong Hu, <b>Wenjun Zhuo</b>, Qihang Ye, Yuanmiao Lin, Xueming Li, Hongmin Huang, Ruidian Zhan, Shuting Cai, Xiaoming Xiong</p>
+          <div class="tag"><span class="stamp">共同第一作者</span></div>
+        </div>
+        <div>
+          <dl>
+            <div><dt>平台</dt><dd>Xilinx ZCU102，300 MHz 目标频率</dd></div>
+            <div><dt>模型</dt><dd>W1.58A8/A4 跑 BitNet-b1.58-2B-4T；W1A8/A4 跑 Bonsai-4B</dd></div>
+            <div><dt>精度</dt><dd>相对同精度 GPU 量化推理，最大 ACC 损失 0.351 个百分点</dd></div>
+            <div><dt>方法</dt><dd>PCU 预计算单元 + 双模式 ATPE 共用一棵分层加法树</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div><b>614–2458</b><span>等效 GOPS</span></div>
+        <div><b>112.9–426.5</b><span>GOPS / W</span></div>
+        <div><b>9.31–37.23</b><span>GOPS / kLUT</span></div>
+        <div><b>≤0.11%</b><span>24 组 PPL 变化</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="notes">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>技术笔记</h2>
+        <p class="note">不写通论，只写自己动手做过的那一小块。三篇都还没发。</p>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <div>
+            <h3>为什么二值权重能省掉乘法</h3>
+            <p>从一个激活行出发，推导候选空间为什么是有界的，以及查表为什么比 XNOR + popcount 更省加法。</p>
+          </div>
+          <span class="stamp">草稿</span>
+        </div>
+        <div class="row">
+          <div>
+            <h3>在 ZCU102 上跑 4B 模型的一周</h3>
+            <p>板子、时钟、功耗墙，以及那些在仿真里永远不会出现的问题。</p>
+          </div>
+          <span class="stamp">计划</span>
+        </div>
+        <div class="row">
+          <div>
+            <h3>读 BitNet b1.58：三值权重到底换了什么</h3>
+            <p>把论文里的假设逐条拆开，看哪一条在硬件上最贵。</p>
+          </div>
+          <span class="stamp">计划</span>
+        </div>
+      </div>
+      <p class="rows-end">还没有已发布的文章，所以这里没有日期。写完一篇，这一行就换成它的日期。</p>
+    </div>
+  </section>
+
+  <section id="jot">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>随笔</h2>
+        <p class="note">研究之外的东西：读到的、想到的、过日子的。写得比技术笔记松，也不必有用。</p>
+      </div>
+      <div class="rows">
+        <div class="row">
+          <div>
+            <h3>查表这件事为什么让我觉得踏实</h3>
+            <p>从一条加法路径讲到，为什么在硬件里「少做一点」有时比「做快一点」更让人安心。</p>
+          </div>
+          <span class="stamp">没动笔</span>
+        </div>
+        <div class="row">
+          <div>
+            <h3>写 RTL 和写文章，其实是同一件事</h3>
+            <p>都是在决定：什么该被抽象掉，什么必须留着看得见。</p>
+          </div>
+          <span class="stamp">没动笔</span>
+        </div>
+        <div class="row">
+          <div>
+            <h3>广州的雨季，和调板子的一周</h3>
+            <p>实验室的灯、示波器的风扇声，以及一个迟迟不收敛的时序。</p>
+          </div>
+          <span class="stamp">没动笔</span>
+        </div>
+      </div>
+      <p class="rows-end">这三件是打算写的小事，还没有一篇成文。第一篇写出来之后，这里会换成它的日期和开头。</p>
+    </div>
+  </section>
+
+  <section id="connect">
+    <div class="wrap">
+      <div class="sec-head">
+        <h2>聊聊</h2>
+        <p class="note">写信比在社交平台留言靠谱。下面这几件事我都愿意聊——包括你觉得我哪里写错了。</p>
+      </div>
+      <div class="contact-grid">
+        <div class="topics">
+          <div><b>低位宽量化</b><span>二值 / 三值到底能省到什么程度，精度在哪儿掉。</span></div>
+          <div><b>FPGA 数据流</b><span>预计算、查表、加法树复用，以及那些掉进时序坑里的晚上。</span></div>
+          <div><b>能效边界</b><span>ZCU102 之外，这件事还能往哪儿推。</span></div>
+        </div>
+        <div class="card">
+          <div class="who">
+            <img class="mini" src="assets/portrait-pixel-1x.png" alt="" width="112" height="131">
+            <div>
+              <b>卓文俊 · Wenjun Zhuo</b>
+              <span>广东工业大学 集成电路学院 · 广州</span>
+            </div>
+          </div>
+          <p>邮件我基本都会回。论文、数据流、能效的问题，或者只是想认识一下，都行。</p>
+          <div class="cta">
+            <a class="btn btn-solid" href="mailto:zhuowenjun1@mails.gdut.edu.cn">写邮件</a>
+            <a class="btn btn-line" href="https://github.com/zwj276765037-lab" target="_blank" rel="noopener">GitHub</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="big">好，就聊到这儿。</div>
+    <div class="links">
+      <a href="#paper">论文</a>
+      <a href="#notes">笔记</a>
+      <a href="#jot">随笔</a>
+      <a href="mailto:zhuowenjun1@mails.gdut.edu.cn">邮箱</a>
+      <a href="https://github.com/zwj276765037-lab" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="small">© 2026 卓文俊 · 静态 HTML，无框架无追踪 · <a href="#">回到顶部</a></div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var art = document.getElementById('pixelArt');
+    if (!art) return;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var hover = window.matchMedia('(hover: hover)').matches;
+    if (reduce || !hover) return;
+
+    var stage = art.parentElement;
+    var raf = 0, tx = 0, ty = 0;
+
+    function apply() {
+      raf = 0;
+      art.style.setProperty('--ry', (tx * 6).toFixed(2) + 'deg');
+      art.style.setProperty('--rx', (-ty * 4.5).toFixed(2) + 'deg');
+    }
+
+    stage.addEventListener('mousemove', function (e) {
+      var r = art.getBoundingClientRect();
+      var dx = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+      var dy = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+      tx = Math.max(-1, Math.min(1, dx));
+      ty = Math.max(-1, Math.min(1, dy));
+      art.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      art.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+      if (!raf) raf = requestAnimationFrame(apply);
+    });
+
+    stage.addEventListener('mouseleave', function () {
+      tx = ty = 0;
+      if (!raf) raf = requestAnimationFrame(apply);
+    });
+  })();
+</script>
 </body>
 </html>
