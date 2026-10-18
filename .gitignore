@@ -1,0 +1,7 @@
+# 设计过程文件：三个方向稿、参考截图、原图、论文 PDF
+_design/
+
+# 系统垃圾
+.DS_Store
+Thumbs.db
+desktop.ini
