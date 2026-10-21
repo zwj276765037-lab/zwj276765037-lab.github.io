@@ -442,27 +442,7 @@
     <p class="dek" data-zh="基于 FPGA 平台的大模型推理加速研究。" data-en="Accelerating large-model inference on FPGAs.">基于 FPGA 平台的大模型推理加速研究。</p>
     <p class="plat"><b data-zh="研究平台" data-en="Platforms">研究平台</b>RTX-A6000 · FPGA VCU118 · ZCU102 · …</p>
 
-    <div class="paper">
-      <div class="num sg">01</div>
-      <div class="t">BAPE: A Binary or Ternary-Weights Transformer Accelerator Based on Precomputation at the Edge
-        <em data-zh="预计算驱动的二值或三值权重 Transformer 加速器" data-en="A binary- or ternary-weight Transformer accelerator driven by precomputation">预计算驱动的二值或三值权重 Transformer 加速器</em></div>
-      <div class="m"><span>IEEE TCAS-I</span><span>2026</span>
-        <a href="https://ieeexplore.ieee.org/document/11675903" target="_blank" rel="noopener">IEEE Xplore ↗</a></div>
-    </div>
-
-    <div class="paper">
-      <div class="num sg">02</div>
-      <div class="t"><span data-zh="ScaleLLM 算子定点化加速" data-en="ScaleLLM: fixed-point operator acceleration">ScaleLLM 算子定点化加速</span>
-        <em data-zh="在跑，也在写。" data-en="Running, and writing.">在跑，也在写。</em></div>
-      <div class="m"><span>RUNNING AND WRITING</span></div>
-    </div>
-
-    <div class="paper">
-      <div class="num sg">03</div>
-      <div class="t"><span data-zh="持续更新 ing" data-en="Always updating">持续更新 ing</span>
-        <em data-zh="这一格先留着，下一件在做的事会出现在这里。" data-en="This slot is held for whatever I do next.">这一格先留着，下一件在做的事会出现在这里。</em></div>
-      <div class="m"><span>ONGOING</span></div>
-    </div>
+    <div id="papers"></div>
   </section>
 
   <!-- 下班后 -->
@@ -1103,6 +1083,8 @@
       20: ['4530', ['肩']]
     }
   };
+  if (window.__LOG__ && Object.keys(window.__LOG__).length) LOG = window.__LOG__;
+  else { try { var _ls = localStorage.getItem('zhuo-log'); if (_ls) LOG = JSON.parse(_ls); } catch (e) {} }
   var MONTHS_EN = ['January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'];
   var GROUP_EN = {
@@ -1129,6 +1111,9 @@
     var today = new Date();
 
     function render() {
+      keys = Object.keys(LOG).sort();
+      if (i > keys.length - 1) i = keys.length - 1;
+      if (i < 0) i = 0;
       var key = keys[i];
       var parts = key.split('-');
       var y = +parts[0], m = +parts[1];
@@ -1173,7 +1158,13 @@
     prevBtn.addEventListener('click', function () { if (i > 0) { i--; render(); } });
     nextBtn.addEventListener('click', function () { if (i < keys.length - 1) { i++; render(); } });
     render();
-    window.renderCalendar = render;
+    window.renderCalendar = function (key) {
+      keys = Object.keys(LOG).sort();
+      if (key && keys.indexOf(key) !== -1) i = keys.indexOf(key);
+      if (i > keys.length - 1) i = keys.length - 1;
+      if (i < 0) i = 0;
+      render();
+    };
   })();
 
   /* ---------- posts ---------- */
@@ -1200,6 +1191,41 @@
   }
   renderPosts();
 
+  var DEFAULT_RESEARCH = [
+    { titleZh: 'BAPE: A Binary or Ternary-Weights Transformer Accelerator Based on Precomputation at the Edge',
+      titleEn: 'BAPE: A Binary or Ternary-Weights Transformer Accelerator Based on Precomputation at the Edge',
+      subZh: '预计算驱动的二值或三值权重 Transformer 加速器',
+      subEn: 'A binary- or ternary-weight Transformer accelerator driven by precomputation',
+      meta: ['IEEE TCAS-I', '2026'],
+      link: 'https://ieeexplore.ieee.org/document/11675903',
+      linkText: 'IEEE Xplore ↗' },
+    { titleZh: 'ScaleLLM 算子定点化加速', titleEn: 'ScaleLLM: fixed-point operator acceleration',
+      subZh: '在跑，也在写。', subEn: 'Running, and writing.',
+      meta: ['RUNNING AND WRITING'] },
+    { titleZh: '持续更新 ing', titleEn: 'Always updating',
+      subZh: '这一格先留着，下一件在做的事会出现在这里。', subEn: 'This slot is held for whatever I do next.',
+      meta: ['ONGOING'] }
+  ];
+  var RESEARCH = (window.__RESEARCH__ && window.__RESEARCH__.length) ? window.__RESEARCH__ : (function () {
+    try { var s = localStorage.getItem('zhuo-research'); return s ? JSON.parse(s) : DEFAULT_RESEARCH; }
+    catch (e) { return DEFAULT_RESEARCH; }
+  })();
+  function renderResearch() {
+    var box = document.getElementById('papers');
+    if (!box) return;
+    box.innerHTML = RESEARCH.map(function (r, i) {
+      var title = LANG === 'en' ? (r.titleEn || r.titleZh) : r.titleZh;
+      var sub = LANG === 'en' ? (r.subEn || r.subZh) : r.subZh;
+      var meta = (r.meta || []).filter(Boolean).map(function (m) { return '<span>' + esc(m) + '</span>'; }).join('');
+      var link = r.link ? '<a href="' + esc(r.link) + '" target="_blank" rel="noopener">'
+        + esc(LANG === 'en' ? (r.linkEn || r.linkText || 'Open ↗') : (r.linkText || 'Open ↗')) + '</a>' : '';
+      return '<div class="paper"><div class="num sg">' + ('0' + (i + 1)).slice(-2) + '</div>'
+        + '<div class="t">' + esc(title || '') + (sub ? '<em>' + esc(sub) + '</em>' : '') + '</div>'
+        + '<div class="m">' + meta + link + '</div></div>';
+    }).join('');
+  }
+  renderResearch();
+
   /* ---------- language ---------- */
   var langBtn = document.getElementById('lang');
 
@@ -1218,6 +1244,7 @@
     if (typeof titleFor === 'function') document.title = titleFor(curId);
     try { render(); } catch (e) { console.warn('board render', e); }
     try { renderPosts(); } catch (e) { console.warn('posts render', e); }
+    try { renderResearch(); } catch (e) { console.warn('research render', e); }
     try { if (window.renderCalendar) window.renderCalendar(); } catch (e) { console.warn('calendar render', e); }
     var cur = sel ? find(sel) : null;
     if (cur) showDesc(cur);
