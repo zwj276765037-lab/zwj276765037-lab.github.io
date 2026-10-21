@@ -165,7 +165,9 @@
   .hud2{position:absolute;inset:0;z-index:5;pointer-events:none;padding:15px 17px;
     display:flex;flex-direction:column;justify-content:space-between;color:rgba(255,255,255,.94);
     font-family:"Space Grotesk";font-size:9.5px;letter-spacing:.18em}
-  .hud2 .row{display:flex;justify-content:space-between;align-items:center}
+  .hud2 .row{display:flex;justify-content:space-between;align-items:center;
+    padding:0 0 9px;border-bottom:1px solid rgba(255,255,255,.28)}
+  .hud2 .row:last-child{padding:9px 0 0;border-bottom:0;border-top:1px solid rgba(255,255,255,.28)}
   .hud2 .rec{display:flex;align-items:center;gap:6px}
   .hud2 .rec i{width:7px;height:7px;border-radius:50%;background:#FF3B30;box-shadow:0 0 10px #FF3B30;animation:rec 1.6s infinite}
   @keyframes rec{0%,100%{opacity:1}50%{opacity:.2}}
