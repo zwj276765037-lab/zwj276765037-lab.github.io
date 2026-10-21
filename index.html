@@ -305,6 +305,9 @@
     .wordmark{display:none}
     .nav{justify-content:center;flex-wrap:nowrap;gap:8px}
     .cta{display:none}
+    .lang{display:flex;position:fixed;left:14px;bottom:14px;z-index:40;width:46px;height:46px;
+      padding:0;align-items:center;justify-content:center;border-radius:50%;font-size:12px;
+      box-shadow:0 14px 26px -14px rgba(242,106,27,.95)}
     .pill{justify-content:center;width:100%;max-width:340px}
     .pill a{padding:7px 9px;font-size:11.5px}
     .cta{padding:10px 16px;font-size:12px}
@@ -1358,6 +1361,7 @@
     links.forEach(function (a) { a.classList.toggle('on', a.getAttribute('href') === '#' + id); });
     document.title = titleFor(id);
     window.scrollTo(0, 0);
+    if (id === 'home') setTimeout(function () { window.dispatchEvent(new Event('home-shown')); }, 40);
   }
   window.addEventListener('hashchange', route);
   route();
@@ -1492,6 +1496,13 @@ const postMat = new THREE.ShaderMaterial({
     }`
 });
 postScene.add(new THREE.Mesh(new THREE.PlaneGeometry(2, 2), postMat));
+
+canvas.addEventListener('webglcontextlost', function (e) { e.preventDefault(); });
+canvas.addEventListener('webglcontextrestored', function () { location.reload(); });
+window.addEventListener('home-shown', function () {
+  requestAnimationFrame(function () { try { resize(); } catch (e) {} });
+});
+if (window.ResizeObserver) { new ResizeObserver(function () { try { resize(); } catch (e) {} }).observe(canvas); }
 
 function resize() {
   const r = canvas.getBoundingClientRect();
