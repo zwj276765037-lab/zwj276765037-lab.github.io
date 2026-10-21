@@ -14,3 +14,6 @@ _dev/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# 本地编辑版，不发布
+edit.html

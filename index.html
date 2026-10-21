@@ -343,10 +343,8 @@
         <div class="latin">WENJUN ZHUO</div>
         <div class="taglabel-row">
           <span class="taglabel sg" data-zh="点击查看标签" data-en="Tap a tag">点击查看标签</span>
-          <button class="ed-toggle" id="ed-toggle" aria-pressed="false">✎ 自定义</button>
         </div>
         <div class="board" id="board" aria-label="自我标签墙">
-          <button class="add-tile" id="add-tile" type="button">＋ 新标签</button>
         </div>
         <p class="tagtext" id="tagtext">广东工业大学集成电路学院在读研二</p>
         <div class="editor" id="editor" hidden>
@@ -558,7 +556,7 @@
   var edReset = document.getElementById('ed-reset');
   var sel = null;
   var items = [];
-  var editing = /(\?|&)edit\b/.test(location.search) || location.hash.indexOf('edit') !== -1;
+  var editing = false; // 展示版：永远不可编辑
 
   var LANG = (function () { try { return localStorage.getItem('zhuo-lang') === 'en' ? 'en' : 'zh'; } catch (e) { return 'zh'; } })();
   var DEF_ZH = '广东工业大学集成电路学院在读研二';
@@ -590,8 +588,10 @@
   function setEditing(on) {
     editing = on;
     document.body.classList.toggle('editing', on);
-    edToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
-    edToggle.textContent = on ? '完成' : '✎ 自定义';
+    if (edToggle) {
+      edToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+      edToggle.textContent = on ? '完成' : '✎ 自定义';
+    }
     if (!on) {
       editor.hidden = true;
       props.hidden = true;
@@ -605,12 +605,7 @@
   setEditing(editing);
   if (editing) editor.hidden = false;
 
-  document.addEventListener('keydown', function (e) {
-    if (e.shiftKey && (e.key === 'E' || e.key === 'e')) {
-      setEditing(!editing);
-      editor.hidden = !editing;
-    }
-  });
+  // 展示版不提供任何进入编辑模式的入口
 
   function uid() { return 'i' + Math.random().toString(36).slice(2, 8); }
   function rnd(a, b) { return Math.round(a + Math.random() * (b - a)); }
