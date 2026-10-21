@@ -265,7 +265,13 @@
   .day .gs{display:flex;flex-wrap:wrap;gap:3px;margin-top:2px}
   .day .gs i{font-style:normal;font-size:9.5px;line-height:1.3;padding:1px 4px;border-radius:3px;
     background:var(--c);color:#241C0F;white-space:nowrap}
-    .travel{margin-top:64px;padding-top:34px;border-top:1px solid var(--line)}
+    .posts{margin-top:36px}
+  .post{display:grid;grid-template-columns:104px 1fr;gap:24px;padding:26px 0;border-top:1px solid var(--line)}
+  .post time{font-family:"Space Grotesk";font-size:11px;letter-spacing:.16em;color:var(--muted);padding-top:7px}
+  .post h3{font-size:21px;font-weight:800;letter-spacing:.01em;line-height:1.5}
+  .post p{margin-top:10px;color:var(--ink-2);line-height:2;max-width:40em;white-space:pre-wrap}
+  @media (max-width:720px){.post{grid-template-columns:1fr;gap:6px}.post time{padding-top:0}}
+  .travel{margin-top:64px;padding-top:34px;border-top:1px solid var(--line)}
   .travel-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
   .travel-head h2{font-size:clamp(32px,3.6vw,46px);font-weight:900;letter-spacing:.02em;line-height:1.1}
   .badge{font-size:10.5px;letter-spacing:.14em;padding:5px 11px;border-radius:999px;
@@ -490,7 +496,8 @@
     <div class="k">03 / NOTES</div>
     <h1 data-zh="思考" data-en="Notes">思考</h1>
     <p class="dek" data-zh="技术之外的观察，和没想清楚但想写下来的东西。不承诺更新频率。" data-en="Observations beyond engineering — things I have not figured out yet but want to write down. No update schedule.">技术之外的观察，和没想清楚但想写下来的东西。不承诺更新频率。</p>
-    <div class="empty">
+    <div class="posts" id="posts"></div>
+    <div class="empty" id="notes-empty">
       <div class="n sg">00</div>
       <div>
         <p data-zh="建设中" data-en="Under construction.">建设中</p>
@@ -1169,6 +1176,30 @@
     window.renderCalendar = render;
   })();
 
+  /* ---------- posts ---------- */
+  var POSTS = (function () {
+    try {
+      if (window.__POSTS__ && window.__POSTS__.length) return window.__POSTS__;
+      var raw = localStorage.getItem('zhuo-posts');
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  })();
+  function renderPosts() {
+    var box = document.getElementById('posts');
+    var empty = document.getElementById('notes-empty');
+    if (!box) return;
+    box.innerHTML = POSTS.map(function (p) {
+      var title = LANG === 'en' ? (p.titleEn || p.titleZh) : p.titleZh;
+      var body = LANG === 'en' ? (p.bodyEn || p.bodyZh) : p.bodyZh;
+      var paras = String(body || '').split(/\n{2,}/).filter(function (x) { return x.trim(); })
+        .map(function (x) { return '<p>' + esc(x.trim()) + '</p>'; }).join('');
+      return '<article class="post"><time>' + esc(p.date || '') + '</time><div><h3>'
+        + esc(title || '') + '</h3>' + paras + '</div></article>';
+    }).join('');
+    if (empty) empty.hidden = POSTS.length > 0;
+  }
+  renderPosts();
+
   /* ---------- language ---------- */
   var langBtn = document.getElementById('lang');
 
@@ -1186,6 +1217,7 @@
     var curId = (location.hash || '#home').slice(1);
     if (typeof titleFor === 'function') document.title = titleFor(curId);
     try { render(); } catch (e) { console.warn('board render', e); }
+    try { renderPosts(); } catch (e) { console.warn('posts render', e); }
     try { if (window.renderCalendar) window.renderCalendar(); } catch (e) { console.warn('calendar render', e); }
     var cur = sel ? find(sel) : null;
     if (cur) showDesc(cur);
