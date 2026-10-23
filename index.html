@@ -416,7 +416,7 @@
           <canvas id="gl" aria-label="卓文俊的 3D 头像" data-engine="three.js r160" width="520" height="562"></canvas>
           <div class="hud2">
             <div class="row"><span class="rec"><i></i>REC</span><span id="face-count">01 / 03</span></div>
-            <div class="row"><span class="big">WENJUN ZHUO — TAP TO MORPH</span><span>GZ · 2026</span></div>
+            <div class="row"><span class="big">WENJUN ZHUO</span><span>GZ · 2026</span></div>
           </div>
         </div>
       </div>
@@ -1887,7 +1887,7 @@
     W = Math.max(2, Math.round(r.width));
     H = Math.max(2, Math.round(r.height));
     canvas.width = W; canvas.height = H;
-    step = Math.max(3, Math.round(Math.sqrt((W * H) / 9000)));
+    step = Math.max(2, Math.round(Math.sqrt((W * H) / 30000)));
     PS = Math.max(2, step);
     imgData = ctx.createImageData(W, H);
     buf = imgData.data;
